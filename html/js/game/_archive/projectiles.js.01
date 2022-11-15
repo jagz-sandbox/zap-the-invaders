@@ -1,0 +1,73 @@
+function Projectiles() {;}
+
+Projectiles.defaultSpeed = 10;
+Projectiles.maxProjectiles = 5;
+Projectiles.minTicks = 5;
+Projectiles.waitTicks = 0;
+
+Projectiles.init = function(appLayer)
+{
+	Projectiles.appLayer = appLayer;
+	Projectiles.missles = [];
+	Projectiles.boundry = new Boundry(0, appLayer.canvas.width, 0, appLayer.canvas.height);
+	
+	Projectiles.addMissle = function(x, y)
+	{
+		if (Projectiles.missles.length < Projectiles.maxProjectiles && Projectiles.waitTicks <= 0)
+		{
+			Projectiles.missles.push(new Missle(x, y));
+			Projectiles.waitTicks = Projectiles.minTicks;
+		}
+	}
+	
+	Projectiles.collideTest = function(boundsArray)
+	{					
+		for (var i=0; i<Projectiles.missles.length; i++)
+		{
+			var missle = Projectiles.missles[i];
+			
+			for (var j=0; j<boundsArray.length; j++)
+			{
+				missle.collideTest(boundsArray[j].bounds);
+			}
+		}
+		
+		Projectiles.missles = tempProjectiles;
+		
+		if (Projectiles.waitTicks > 0)
+		{ Projectiles.waitTicks--; }
+	}
+	
+	Projectiles.update = function()
+	{	
+		var tempProjectiles = [];
+		
+		for (var i=0; i<Projectiles.missles.length; i++)
+		{
+			var missle = Projectiles.missles[i];			
+			missle.update();
+			if (missle.alive)
+			{
+				tempProjectiles.push(missle);
+			}
+		}
+		
+		Projectiles.missles = tempProjectiles;
+		
+		if (Projectiles.waitTicks > 0)
+		{ Projectiles.waitTicks--; }
+	}
+	
+	Projectiles.draw = function()
+	{		
+		var context = Projectiles.appLayer.context; 
+		var canvas = Projectiles.appLayer.canvas;
+		
+		
+		for (var i=0; i<Projectiles.missles.length; i++)
+		{
+			var missle = Projectiles.missles[i];
+			context.drawImage(missle.image, missle.loc.x, missle.loc.y, missle.size.w, missle.size.h);
+		}
+	}
+}

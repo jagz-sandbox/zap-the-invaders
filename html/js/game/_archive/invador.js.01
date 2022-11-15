@@ -1,0 +1,167 @@
+/*
+
+
+*/
+function Invador() {;}
+
+// State Constants
+Invador.STATE_HOME = 0;
+Invador.STATE_PAUSED = 1;
+Invador.STATE_PLAYING = 2;
+Invador.STATE_LEVELSUMMARY = 3;
+Invador.STATE_GAMEEND = 4;
+
+// Properties
+Invador.state = null;
+Invador.frames = 0;
+Invador.gamepadInput = [];
+Invador.player = null;
+
+// Objects
+Invador.background = null;
+Invador.interlude = null;
+
+Invador.start = function()
+{		
+	Invador.background = new Background();	
+	HomeScreen.init(App.width, App.height);	
+	Invador.state = Invador.STATE_HOME;
+	Input.init(App.width, App.height);	
+	// ToDo: HomeScreen
+	
+	Invador.gameLoop();	
+}
+
+Invador.initGame = function()
+{	
+	SessionOverlay.init();	
+	BattleField.init(App.width, App.height);
+	Player.init(BattleField.appLayer, Position_CENTERBOTTOM);
+	Player.update(Player.MOVE_UP, 64);
+	GamePad.init(App.width, App.height);
+	Input.init(App.width, App.height);	
+	Invador.startNextLevel();
+}
+
+Invador.startNextLevel = function()
+{	
+	UserSession.currentLevel++;
+	//Player.init(App.width, App.height, Position_CENTERBOTTOM, 0, App.width, 0, App.height);
+	
+	Invador.lastGamepadInput= Invador.thisGamepadInput = Input.INPUT_NULL;
+	
+	Invador.state = Invador.STATE_PLAYING;	
+}
+
+Invador.gameLoop = function()
+{	
+	Invador.frames++;
+
+	Invador.getInput();
+	Invador.updateElements();
+	Invador.drawElements();
+
+	requestAnimationFrame(Invador.gameLoop); 
+}
+
+Invador.getInput = function()
+{		
+	var input = Input.lastInput;
+	var nullInput = (input.length <= 0);
+	var gamePadDirs = [];
+
+	if (Invador.state === Invador.STATE_PLAYING)
+	{		
+		for (var i=0; i<input.length; i++)
+		{
+			if (input[i].type === Input.eventStart || input[i].type === Input.eventMove)
+			{
+				var dir = GamePad.hitTest(input[i].coords);
+				if ( dir != GamePad.NOINPUT)
+				{ gamePadDirs.push(dir); }
+			}
+		}
+
+		Invador.gamepadInput = gamePadDirs;
+	}
+	else if (Invador.state === Invador.STATE_HOME)
+	{
+		if (!nullInput)
+		{			
+			HomeScreen.animateOut(Invador.initGame);
+		}
+	}
+	else if (Invador.state === Invador.STATE_LEVELSUMMARY)
+	{
+		
+	}
+}
+
+Invador.updateElements = function()
+{		
+	if (Invador.state === Invador.STATE_PLAYING)
+	{		
+		var actions = []; 
+		var padStates = [];
+		Player.update(null);	
+
+		for (var i=0; i<Invador.gamepadInput.length; i++)
+		{
+			var thisInput = Invador.gamepadInput[i]; 
+			var action = null;			
+			padStates.push(thisInput);
+			
+			if (thisInput === GamePad.LEFT)
+			{
+				action = Player.MOVE_LEFT;
+			}
+			else if (thisInput === GamePad.RIGHT)
+			{
+				action = Player.MOVE_RIGHT;
+			}
+			else if (thisInput === GamePad.FIRE)
+			{
+				action = Player.FIRE;
+			}
+			
+			actions.push(action);			
+		}
+				
+		for (var i=0; i<actions.length; i++)
+		{ Player.update(actions[i]); }
+				
+		GamePad.showInput(padStates);
+	}
+	else if (Invador.state === Invador.STATE_HOME)
+	{
+		
+	}
+	else if (Invador.state === Invador.STATE_LEVELSUMMARY)
+	{
+		
+	}
+}
+
+Invador.drawElements = function()
+{
+	if (Invador.state === Invador.STATE_PLAYING)
+	{
+		BattleField.draw();
+		GamePad.draw();	
+		SessionOverlay.draw();
+	}
+	else if (Invador.state === Invador.STATE_HOME)
+	{
+		HomeScreen.draw();
+	}
+	else if (Invador.state === Invador.STATE_LEVELSUMMARY)
+	{
+		
+	}
+
+	Invador.background.draw();
+}
+
+
+
+

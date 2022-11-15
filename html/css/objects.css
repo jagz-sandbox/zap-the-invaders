@@ -1,0 +1,14 @@
+.gameobject
+{	
+	position:absolute;
+}
+
+.nomouse
+{
+	pointer-events: none;
+}
+
+.clipped
+{
+	clip: rect(0, 0, 600px, 600px);
+}

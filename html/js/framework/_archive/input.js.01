@@ -1,0 +1,74 @@
+function Input() {;}
+
+Input.type 	= ('ontouchstart' in window) ? 'touch' : 'mouse';
+
+Input.eventDown  = (Input.type === 'touch') ? 'touchstart' : 'mousedown';
+Input.eventMove  = (Input.type === 'touch') ? 'touchmove' : 'mousemove';
+Input.eventUp 	 = (Input.type === 'touch') ? 'touchend' : 'mouseup';
+
+// Input 
+Input.LEFT = 'left';
+Input.FIRE = 'fire';
+Input.RIGHT = 'right';
+Input.UP	= 'up';
+Input.DOWN  = 'down';
+Input.NULL = 'null';
+
+Input.listeners = [];
+Input.canvas = null;
+Input.lastInput = null;
+
+Input.init = function(w, h)
+{
+	Input.lastInput = Input.NULL;
+	Input.appLayer = new AppLayer('Input', true, w, h);
+	Input.canvas = Input.appLayer.canvas;
+	Input.addListener(Input.eventDown, Input.handleDown);
+	Input.addListener(Input.eventMove, Input.handleDown);
+	Input.addListener(Input.eventUp, Input.handleUp);
+	
+	GamePad.init(Input.LEFT, Input.FIRE, Input.RIGHT, Input.UP, Input.DOWN, Input.NULL);
+}
+
+Input.getLastInput = function()
+{
+	return Input.lastInput;
+}
+
+Input.getInput = function(event)
+{
+	var eventCoords = Utilities.translateEvent(Input.type, event);	
+	//return Input.lastInput;
+}
+
+Input.handleDown = function(event)
+{
+	event.preventDefault();	
+	var eventCoords = Utilities.translateEvent(Input.type, event);	
+	Input.lastInput = GamePad.hitTest(eventCoords);
+	GamePad.changeState(Input.lastInput);
+	return false;
+}
+
+Input.handleUp = function(event)
+{
+	event.preventDefault();	
+	Input.lastInput = Input.NULL;
+	GamePad.changeState(Input.lastInput);
+	return false;
+}
+
+Input.addListener = function(listenEvent, eventMethod)
+{
+	Input.listeners.push({event:listenEvent, method:eventMethod});
+	Input.bindEvents();
+}
+
+Input.bindEvents = function()
+{
+	for (var i=0; i<Input.listeners.length; i++)
+	{
+		Input.canvas.addEventListener(Input.listeners[i].event, Input.listeners[i].method, false);
+	}
+}
+

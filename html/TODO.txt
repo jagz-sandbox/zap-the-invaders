@@ -1,0 +1,30 @@
+Slow down transition between dying/level end and the overlay screens (summary, get ready, game over)
+
+Have player and enemy missles destroy each other
+
+Add bonuses:
+- Nuke (blows up all enemies)
+- Player projective speed and/or max projectiles
+- Extra life
+- Player speed?
+
+Add additional callouts for bonuses, etc.
+
+Add extra live per x points
+
+Make enemies harder at higher levels
+- More enemies moving (done)
+- Faster and/or more enemy projectiles
+
+Add new enemy types (ala Space Invadors UFO boss)
+
+Add sound class and sounds
+- Shoot/Fire
+- Explosions
+- Callouts
+
+Better assets
+- Player
+- Bonuses
+- Enemies
+- Missles

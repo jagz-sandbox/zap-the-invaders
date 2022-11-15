@@ -1,0 +1,102 @@
+function GamePad() {;}
+
+GamePad.init = function()
+{
+	GamePad.moveLeft 	= 'left';
+	GamePad.fire 		= 'fire';
+	GamePad.moveRight 	= 'right';
+	GamePad.moveUp 		= 'up';
+	GamePad.moveDown 	= 'down';
+	GamePad.noInput 	= 'null';
+	
+	GamePad.appLayer = new AppLayer('GamePad', false, App.width, App.height, null);
+	GamePad.context = GamePad.appLayer.context;
+	
+	GamePad.spriter = new Spriter(ImageAssets.getImageAssetByName('Controller'));
+	GamePad.size = { w:150, h:65 };
+	GamePad.location = { x:App.width-GamePad.size.w, y:App.height - GamePad.spriter.image.height };
+	
+	var nullFrames =  [ new SpriteFrame(0  , 0, 150, 65) ];
+	var leftFrames =  [ new SpriteFrame(151, 0, 150, 65) ];
+	var fireFrames =  [ new SpriteFrame(301, 0, 150, 65) ];
+	var rightFrames = [ new SpriteFrame(451, 0, 150, 65) ];
+	
+	var elements = [
+		  { x:GamePad.location.x, y:GamePad.location.y, xm:GamePad.location.x+60, ym:GamePad.location.y+GamePad.size.h }
+		, { x:GamePad.location.x+61, y:GamePad.location.y, xm:GamePad.location.x+90, ym:GamePad.location.y+GamePad.size.h }
+		, { x:GamePad.location.x+91, y:GamePad.location.y, xm:GamePad.location.x+GamePad.size.w, ym:GamePad.location.y+GamePad.size.h }
+	];
+	
+	GamePad.spriter.addState(new SpriteState(GamePad.moveLeft, leftFrames, 1, false));
+	GamePad.spriter.addState(new SpriteState(GamePad.fire , fireFrames, 1, false));
+	GamePad.spriter.addState(new SpriteState(GamePad.moveRight, rightFrames, 1, false));
+	GamePad.spriter.addState(new SpriteState(GamePad.noInput, nullFrames, 1, false));
+	GamePad.spriter.changeState(GamePad.noInput);
+	
+	GamePad.leftBounds  = new Bounds(elements[0].x, elements[0].y, elements[0].xm, elements[0].ym);
+	GamePad.fireBounds  = new Bounds(elements[1].x, elements[1].y, elements[1].xm, elements[1].ym);
+	GamePad.rightBounds = new Bounds(elements[2].x, elements[2].y, elements[2].xm, elements[2].ym);
+	
+	GamePad.redraw = true;
+	GamePad.draw();
+}
+
+GamePad.hitTest = function(coords)
+{
+	var hit = false;
+	var direction = null;
+	
+	if (GamePad.leftBounds.hitTest(coords))
+	{
+		hit = true;
+		direction = GamePad.moveLeft;
+	}
+	else if (GamePad.fireBounds.hitTest(coords))
+	{
+		hit = true;
+		direction = GamePad.fire;
+	}
+	else if (GamePad.rightBounds.hitTest(coords))
+	{
+		hit = true;
+		direction = GamePad.moveRight;
+	}
+	else
+	{
+		hit = false;
+		direction = GamePad.noInput;
+	}
+	
+	return direction;
+}
+
+GamePad.changeState = function(state)
+{	
+	GamePad.spriter.changeState(state);
+	GamePad.redraw = true;
+}
+
+GamePad.draw = function()
+{
+	var canvas = GamePad.appLayer.canvas;
+	var context = GamePad.appLayer.context;
+	var image = GamePad.spriter.image;
+	var sprite = GamePad.spriter.sprite;
+	var loc = GamePad.location;
+	var size = GamePad.size;
+	
+	if (GamePad.redraw)
+	{	
+		GamePad.spriter.updateSprite();
+		
+		context.clearRect(loc.x, loc.y, size.w, size.h);		
+		context.drawImage(image, 
+		sprite.x, sprite.y, 
+		sprite.sw, sprite.sh, 
+		loc.x, loc.y, size.w, size.h);
+		
+		GamePad.redraw = false;
+	}
+	
+}
+

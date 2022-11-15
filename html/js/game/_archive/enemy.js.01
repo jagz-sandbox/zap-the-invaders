@@ -1,0 +1,161 @@
+function Enemies()
+{
+	this.items = [];
+}
+
+// CONSTANTS
+Enemy.STATE_ALIVE 	= 100;
+Enemy.STATE_DYING 	= 101;
+Enemy.STATE_DEAD	= 102;
+
+// Enemy/missle adjustments
+Enemy.maxProjectiles = 2; // Max number of missles allowed to be alive a one time
+Enemy.minTicks = 25; // Minimum frames between missles
+Enemy.missleDirection = new Vector2d(0, 1);
+
+// Properties
+Enemy.prototype.projectileSpeed = 15; // Speed of the missles
+Enemy.prototype.speed = 10;
+Enemy.prototype.size = new Size2d(64 ,64);
+Enemy.prototype.missles = [];
+Enemy.prototype.missleBoundry;
+Enemy.prototype.waitTicks = 0;
+Enemy.prototype.alive = true;
+Enemy.prototype.boundry;
+Enemy.prototype.bounds;
+Enemy.prototype.points = 100;
+Enemy.prototype.location;
+Enemy.prototype.initLocation;
+
+function Enemy(appLayer, location)
+{	
+	this.appLayer = appLayer;
+	this.location = location;
+	this.startLoc = new Vector2d(location.x, location.y);;
+	this.canFire = true;
+	this.state = Enemy.STATE_ALIVE;
+	
+	this.speed = Utilities.random(5, 6);
+		
+	var moveFrames = [];
+	var explodeFrames = [];
+	
+	var spritesFrames = [moveFrames, explodeFrames];
+	var elemSprites = [1, 7]; 
+
+	var col = 0;
+	
+	for (var i=0; i<spritesFrames.length; i++)
+	{
+		for (var j=0; j < elemSprites[i]; j++) 
+		{
+			spritesFrames[i].push(new SpriteFrame(this.size.w * col, 0, this.size.w, this.size.h)) ;		
+			col++;
+		}
+	}
+	
+	this.spriter = new Spriter(ImageAssets.getImageAssetByName('Enemy'));	
+	this.spriter.addState(new SpriteState('move', moveFrames, 1, false));
+	this.spriter.addState(new SpriteState('explode', explodeFrames, 2, false));
+	this.spriter.changeState('move');
+		
+	this.boundry = new Boundry(new Vector2d(0,-this.size.h), new Vector2d(appLayer.canvas.width, appLayer.canvas.height));
+	this.missleBoundry = new Boundry(new Vector2d(0,0), new Vector2d(appLayer.canvas.width, appLayer.canvas.height));
+	this.bounds = new Bounds(new Vector2d(this.location.x, this.location.y), new Vector2d(this.size.w, this.size.h));
+}
+
+Enemy.prototype.reset = function()
+{	
+	this.location = new Vector2d(this.startLoc.x, this.startLoc.y);
+}
+
+Enemy.prototype.addMissle = function()
+{	
+	var location = new Vector2d(this.location.x + this.size.w/2, this.location.y + this.size.h);
+
+	if (this.canFire)
+	{
+		this.missles.push(new Missle('EnemyMissle', location, Enemy.missleDirection, this.missleBoundry, this.projectileSpeed));
+		this.waitTicks = Enemy.minTicks;
+	}
+}
+
+Enemy.prototype.getCollides = function()
+{
+	var temparray = [];
+	temparray.push(this);
+	
+	for (var i=0; i<this.missles.length; i++)
+	{
+		temparray.push(this.missles[i]);
+	}
+	
+	return temparray;
+}
+
+Enemy.prototype.update = function(collideArray)
+{
+	var tempProjectiles = [];
+		
+	for (var i=0; i<this.missles.length; i++)
+	{
+		var missle = this.missles[i];
+		missle.update();	
+		
+		if (missle.alive)
+		{ tempProjectiles.push(missle);	}	
+		
+	}	
+	this.missles = tempProjectiles;
+	
+	var boundryHits = this.boundry.boundryHitTest(this.location);
+	if ( boundryHits.length > 0 )
+	{ 		
+		this.location.y = -this.size.h;//-this.size.h;
+	}
+	else if (this.state == Enemy.STATE_DYING && this.spriter.finished)
+	{
+		this.state = Enemy.STATE_DEAD;
+	}
+	else if (this.state == Enemy.STATE_ALIVE)
+	{ 
+		if (this.waitTicks <= 0 && this.missles.length < Enemy.maxProjectiles)
+		{  this.canFire = true; }
+		else
+		{  this.waitTicks--; this.canFire = false; }
+		
+		for (var i=0; i<collideArray.length; i++)
+		{
+			if(this.bounds.collideTest(collideArray[i]))
+			{
+				this.spriter.changeState('explode');
+				this.state = Enemy.STATE_DYING;
+				return;
+			}
+		}
+		
+		this.location.y += this.speed;
+		this.bounds.min = this.location;
+		this.bounds.max.x = this.location.x + this.size.w;
+		this.bounds.max.y = this.location.y + this.size.h;
+	}
+}
+
+Enemy.prototype.draw = function()
+{	
+	var image = this.spriter.image;
+	var sprite = this.spriter.sprite;
+	var bounds = this.bounds;
+	var context = this.appLayer.context;
+	var canvas = this.appLayer.canvas;
+	var location = this.location;
+	
+	this.spriter.updateSprite();
+	
+	context.drawImage(image, sprite.x, sprite.y, sprite.sw, sprite.sh, location.x, location.y, this.size.w, this.size.h);
+	
+	for (var i=0; i<this.missles.length; i++)
+	{	
+		this.missles[i].draw(context);
+	}
+}

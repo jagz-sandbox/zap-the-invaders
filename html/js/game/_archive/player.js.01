@@ -1,0 +1,148 @@
+function Player() {;}
+
+Player.MOVE_LEFT = 0;
+Player.MOVE_RIGHT = 1;
+Player.MOVE_UP = 2;
+Player.MOVE_DOWN = 3;
+Player.FIRE = 10;
+
+Player.appLayer = null;
+Player.location = null;
+Player.boundry = null;
+Player.spriteDim = 64;
+Player.currentSpeed = 5;
+
+Player.init = function(w, h, position, minX, maxX, minY, maxY)
+{
+	Player.appLayer = new AppLayer('Player', false, w, h, null);
+	
+	var adjustedMaxX = maxX - Player.spriteDim;
+	var adjustedMaxY = maxY - Player.spriteDim;
+		
+	var left = 0;
+	var top = 0;
+	var center = w/2 - Player.spriteDim/2;
+	var middle = h/2 - Player.spriteDim/2;
+	var right = w - Player.spriteDim;
+	var bottom = h - Player.spriteDim;
+
+	switch (position)
+	{
+		case Position_LEFTTOP:
+			Player.location = { x:left, y:top };
+			break;
+		case Position_CENTERTOP:
+			Player.location = { x:center, y:top };
+			break;
+		case Position_RIGHTOP:
+			Player.location = { x:right, y:top };
+			break;
+		case Position_LEFTMIDDLE:
+			Player.location = { x:left, y:middle };
+			break;
+		case Position_CENTERMIDDLE:
+			Player.location = { x:center, y:middle };
+			break;
+		case Position_RIGHTMIDDLE:
+			Player.location = { x:right, y:middle };
+			break;
+		case Position_LEFTBOTTOM:
+			Player.location = { x:left, y:bottom };
+			break;
+		case Position_CENTERBOTTOM:
+			Player.location = { x:center, y:bottom };
+			break;
+		case Position_RIGHTBOTTOM:
+			Player.location = { x:right, y:bottom };
+			break;	
+	}
+	
+	Player.boundry = new Boundry(minX, adjustedMaxX, minY, adjustedMaxY);	
+	Player.spriter = new Spriter(ImageAssets.getImageAssetByName('Player'));
+	
+	var moveFrames = [];
+	var shieldFrames = [];
+	var explodeFrames = [];
+	
+	var spritesFrames = [moveFrames, shieldFrames, explodeFrames];
+	var elemSprites = [1, 4, 5]; 
+	var frameDuration = [1, 5, 50];
+
+	var col = 0;
+	for (var i=0; i<spritesFrames.length; i++)
+	{
+		for (var j=0; j < elemSprites[i]; j++) 
+		{
+			spritesFrames[i].push(new SpriteFrame(Player.spriteDim * col, 0, Player.spriteDim, Player.spriteDim)) ;		
+			col++;
+		}
+	}
+	
+	Player.spriter.addState(new SpriteState('move', moveFrames, 1, true));
+	Player.spriter.addState(new SpriteState('fire', shieldFrames, 2, false));
+	Player.spriter.addState(new SpriteState('explode', explodeFrames, 5, false));
+	Player.spriter.changeState('move');
+		
+	Player.bounds = new Bounds(0, 0, 0, 0);
+}
+
+Player.hitTest = function(coords)
+{
+	return Player.bounds.hitTest(coords);
+}
+
+Player.update = function(action, speed)
+{	
+	var loc = Player.location;
+	var boundry = Player.boundry;
+	var factor = (speed == null) ? Player.currentSpeed : speed;
+	
+	if (action === Player.MOVE_LEFT && loc.x >= boundry.minX)
+	{
+		Player.spriter.changeState('move'); 
+		loc.x -= factor;
+	}
+	else if (action === Player.MOVE_RIGHT && loc.x <= boundry.maxX)
+	{
+		Player.spriter.changeState('move'); 
+		loc.x += factor;
+	}
+	else if (action === Player.MOVE_UP && loc.y >= boundry.minY)
+	{
+		Player.spriter.changeState('move'); 
+		loc.y -= factor;
+	}
+	else if (action === Player.MOVE_DOWN && loc.y <= boundry.maxY)
+	{ 
+		Player.spriter.changeState('move'); 
+		loc.y += factor;
+	}
+	else if (action === Player.FIRE)
+	{
+		Player.spriter.changeState('fire');
+	}
+	else if (action === Player.EXPLODE)
+	{
+		Player.spriter.changeState('explode');
+	}
+}
+
+Player.draw = function()
+{
+	var image = Player.spriter.image;
+	var sprite = Player.spriter.sprite;
+	var bounds = Player.bounds;
+	var context = Player.appLayer.context;
+	var canvas = Player.appLayer.canvas;
+	var loc = Player.location;
+
+	Player.spriter.updateSprite();
+	
+	bounds.x = loc.x;
+	bounds.y = loc.y;
+	bounds.xMax = bounds.x + (Player.spriteDim/2);
+	bounds.yMax = bounds.y + (Player.spriteDim/2);
+	
+	context.clearRect(0, 0, canvas.width, canvas.height);	
+	context.drawImage(image, sprite.x, sprite.y, sprite.sw, sprite.sh, loc.x, loc.y, Player.spriteDim, Player.spriteDim);
+}

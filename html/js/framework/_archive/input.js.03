@@ -1,0 +1,58 @@
+function Input() {;}
+
+Input.type 	= ('ontouchstart' in window) ? 'touch' : 'mouse';
+
+Input.eventStart  = (Input.type === 'touch') ? 'touchstart' : 'mousedown';
+Input.eventMove  = (Input.type === 'touch') ? 'touchmove' : 'mousemove';
+Input.eventEnd 	 = (Input.type === 'touch') ? 'touchend' : 'mouseup';
+Input.eventLeave = (Input.type === 'touch') ? 'touchleave' : 'mouseup';
+Input.eventCancel = (Input.type === 'touch') ? 'touchcancel' : 'mouseup';
+
+Input.nullCoords = null;
+Input.coords = Input.nullCoords;
+Input.maxInputs = 3;
+Input.lastInput = [];
+
+for (var i=0; i<Input.maxInputs; i++)
+{ Input.lastInput.push( { id:i, type:null, coords: {x:null, y:null} } ); }
+
+Input.init = function(w, h)
+{
+	App.removeAppLayerById('Input');
+	Input.appLayer = new AppLayer('Input', true, w, h, null);
+		
+	var canvas = Input.appLayer.canvas;	
+	canvas.addEventListener(Input.eventStart, Input.handleEvent, false);
+	canvas.addEventListener(Input.eventMove, Input.handleEvent, false);
+	canvas.addEventListener(Input.eventEnd, Input.handleEvent, false);	
+}
+
+Input.handleEvent = function(event)
+{	
+	event.preventDefault();	
+	
+	console.log(event);
+	
+	for (var i=0; i<event.touches.length; i++)
+	{
+		for (var j=0; j<Input.lastInput.length; j++)
+		{
+			// WTF Do I do here?
+		}
+	}	
+	return;
+			
+	if (event.type == Input.eventStart || event.type == Input.eventMove)
+	{	
+		for (var i=0; i<event.touches.length; i++)
+		{	
+			inputs.push( { type:event.type, coords:Utilities.translateTouchEvent(event.touches[i]) });
+		}
+	}
+	else if (event.type == Input.eventEnd || event.type == Input.eventLeave || event.type == Input.eventCancel)
+	{
+		//inputs.push( { type:event.type, coords: {x: null, y:null} });
+	}
+	
+	return false;
+}
