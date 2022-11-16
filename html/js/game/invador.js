@@ -9,6 +9,7 @@ Invador.STATE_SETUP			= 3;
 Invador.STATE_LEVELSUMMARY 	= 4;
 Invador.STATE_GAMEOVER 		= 5;
 
+// Gameplay adjustments
 Invador.MAX_MOVING_ENEMIES  = 5;
 Invador.MAX_ENEMY_MOVE_WAIT  = 60;
 
@@ -122,7 +123,7 @@ Invador.getInput = function()
 	}
 	else if (Invador.state === Invador.STATE_SETUP)
 	{
-		
+		// No Input
 	}
 	else if (Invador.state === Invador.STATE_HOME)
 	{		

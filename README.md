@@ -1,2 +1,2 @@
 # Zap The Invaders
-# A Space Invaders clone
+A Space Invaders clone
